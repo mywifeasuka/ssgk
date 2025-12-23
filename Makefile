@@ -63,15 +63,15 @@ SPIKE_INF_LIB   := $(OBJ_DIR)/spike_interface.a
 
 
 #---------------------	user   -----------------------
-USER_CPPS 		:= user/user_lib.c user/app_sum_sequence.c
+USER_CPPS 		:= user/user_lib.c user/app_wait.c
 USER_CPPS  		:= $(wildcard $(USER_CPPS))
 USER_OBJS  		:= $(addprefix $(OBJ_DIR)/, $(patsubst %.c,%.o,$(USER_CPPS)))
-USER_TARGET 	:= $(OBJ_DIR)/app_sum_sequence
+USER_TARGET 	:= $(OBJ_DIR)/app_wait
 
-USER_CPPS2 		:= user/user_lib.c user/app_sum_sequence2.c
+USER_CPPS2 		:= user/user_lib.c user/app_wait2.c
 USER_CPPS2  		:= $(wildcard $(USER_CPPS2))
 USER_OBJS2  		:= $(addprefix $(OBJ_DIR)/, $(patsubst %.c,%.o,$(USER_CPPS2)))
-USER_TARGET2 	:= $(OBJ_DIR)/app_sum_sequence2
+USER_TARGET2 	:= $(OBJ_DIR)/app_wait2
 #------------------------targets------------------------
 $(OBJ_DIR):
 	@-mkdir -p $(OBJ_DIR)
