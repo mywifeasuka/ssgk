@@ -159,7 +159,16 @@ void *user_va_to_pa(pagetable_t page_dir, void *va) {
   // (va & (1<<PGSHIFT -1)) means computing the offset of "va" inside its page.
   // Also, it is possible that "va" is not mapped at all. in such case, we can find
   // invalid PTE, and should return NULL.
-  panic( "You have to implement user_va_to_pa (convert user va to pa) to print messages in lab2_1.\n" );
+  uint64 vaddr = (uint64)va;
+  pte_t *pte = page_walk(page_dir, vaddr, 0);
+
+  if (pte == 0 || (*pte & PTE_V) == 0) {
+    return NULL;
+  }
+
+  uint64 pa = PTE2PA(*pte) + (vaddr & (PGSIZE - 1));
+
+  return (void *)pa;
 
 }
 
@@ -184,24 +193,19 @@ void user_vm_unmap(pagetable_t page_dir, uint64 va, uint64 size, int free) {
   // (use free_page() defined in pmm.c) the physical pages. lastly, invalidate the PTEs.
   // as naive_free reclaims only one page at a time, you only need to consider one page
   // to make user/app_naive_malloc to behave correctly.
-  panic( "You have to implement user_vm_unmap to free pages using naive_free in lab2_2.\n" );
+  uint64 first, last;
+  pte_t *pte;
 
-}
-
-//
-// debug function, print the vm space of a process. added @lab3_1
-//
-void print_proc_vmspace(process* proc) {
-  sprint( "======\tbelow is the vm space of process%d\t========\n", proc->pid );
-  for( int i=0; i<proc->total_mapped_region; i++ ){
-    sprint( "-va:%lx, npage:%d, ", proc->mapped_info[i].va, proc->mapped_info[i].npages);
-    switch(proc->mapped_info[i].seg_type){
-      case CODE_SEGMENT: sprint( "type: CODE SEGMENT" ); break;
-      case DATA_SEGMENT: sprint( "type: DATA SEGMENT" ); break;
-      case STACK_SEGMENT: sprint( "type: STACK SEGMENT" ); break;
-      case CONTEXT_SEGMENT: sprint( "type: TRAPFRAME SEGMENT" ); break;
-      case SYSTEM_SEGMENT: sprint( "type: USER KERNEL STACK SEGMENT" ); break;
+  for (first = ROUNDDOWN(va, PGSIZE), last = ROUNDDOWN(va + size - 1, PGSIZE);
+      first <= last; first += PGSIZE) {    
+    if ((pte = page_walk(page_dir, first, 0)) == 0) continue;
+    if (*pte & PTE_V) {
+      uint64 pa = PTE2PA(*pte);      
+      if (free) {
+        free_page((void *)pa);
+      }
+      *pte = 0;
     }
-    sprint( ", mapped to pa:%lx\n", lookup_pa(proc->pagetable, proc->mapped_info[i].va) );
   }
+
 }
